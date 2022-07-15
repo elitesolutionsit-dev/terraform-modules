@@ -2,17 +2,11 @@
 #***    Database Module ***#
 #/==================================================\#
 
-### Resource Group ##
-resource "azurerm_resource_group" "rg" {
-  name     = join("-", [local.server, var.dbRGname])
-  location = local.buildregion
-}
-
 ### Storage account ##
 resource "azurerm_storage_account" "storageaccount" {
   name                     = join("", [local.server, var.storageaccount])
-  location                 = azurerm_resource_group.rg.location
-  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = data.azurerm_resource_group.rgdb.location
+  resource_group_name      = data.azurerm_resource_group.rgdb.name
   account_tier             = var.account_tier
   account_replication_type = var.account_replication_type
 }
@@ -20,8 +14,8 @@ resource "azurerm_storage_account" "storageaccount" {
 ### MySQL Server ##
 resource "azurerm_mssql_server" "sqlserver" {
   name                         = join("", [local.server, var.sqlserver])
-  location                     = azurerm_resource_group.rg.location
-  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = data.azurerm_resource_group.rgdb.location
+  resource_group_name          = data.azurerm_resource_group.rgdb.name
   version                      = var.versionsql
   administrator_login          = join("", [local.server, var.administrator_login])
   administrator_login_password = var.administrator_login_password
