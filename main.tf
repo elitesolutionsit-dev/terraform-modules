@@ -38,3 +38,49 @@ module "virtualnetwork" {
 
   depends_on = [azurerm_resource_group.rg]
 }
+
+locals {
+  ui-beap      = join("", ["ui-beap"])
+  apibeap      = join("", ["api-beap"])
+  uihtst       = join("", ["ui-htst"])
+  api-htst     = join("", ["api-htst"])
+  httplistener = join("", ["http-listener"])
+  httprqrt     = join("", ["http-rqrt"])
+  fe-pip       = join("", ["fe-pip"])
+  feconfig     = join("", ["feconfig"])
+}
+
+module "applicationgateway" {
+  source = "./modules/applicationgateway"
+
+  backend_http_settings = [{
+    name                  = local.uihtst
+    path                  = "/"
+    request_timeout       = 60
+    cookie_based_affinity = "Enabled"
+    },
+    {
+      name                  = "Elite-development-bhst"
+      path                  = "/app"
+      request_timeout       = 60
+      cookie_based_affinity = "Enabled"
+    }
+  ]
+
+  http_listener = [{
+    name                           = local.httplistener
+    frontend_ip_configuration_name = "name-pip"
+    frontend_port_name             = "port80"
+    protocol                       = "Http"
+    }
+  ]
+
+  request_routing_rule = [{
+    name                       = local.httprqrt
+    http_listener_name         = local.httplistener
+    backend_address_pool_name  = "beapname"
+    backend_http_settings_name = local.uihtst
+    priority                   = "10"
+    }
+  ]
+}
